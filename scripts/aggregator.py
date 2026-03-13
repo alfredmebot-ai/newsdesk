@@ -98,7 +98,10 @@ def get_weather():
         res = requests.get(url, timeout=10).json()
         current = res['current_weather']
         now_hour = datetime.now().hour
-        h6, h12 = min(now_hour + 6, 23), min(now_hour + 12, 23)
+        hourly_temp = res['hourly']['temperature_2m']
+        hourly_code = res['hourly']['weathercode']
+        h6 = (now_hour + 6) % 24
+        h12 = (now_hour + 12) % 24
         def code_to_icon(c):
             if c <= 1: return '\u2600\ufe0f'
             if c <= 3: return '\U0001f324\ufe0f'
@@ -108,11 +111,11 @@ def get_weather():
             return '\u26c8\ufe0f'
         return {
             'now': round(current['temperature']),
-            'plus6': round(res['hourly']['temperature_2m'][h6]),
-            'plus12': round(res['hourly']['temperature_2m'][h12]),
+            'plus6': round(hourly_temp[h6]),
+            'plus12': round(hourly_temp[h12]),
             'icons': [code_to_icon(current.get('weathercode', 0)), 
-                      code_to_icon(res['hourly']['weathercode'][h6]), 
-                      code_to_icon(res['hourly']['weathercode'][h12])]
+                      code_to_icon(hourly_code[h6]), 
+                      code_to_icon(hourly_code[h12])]
         }
     except: return {'now': 5, 'plus6': 6, 'plus12': 4, 'icons': ['\U0001f324\ufe0f', '\u2600\ufe0f', '\U0001f324\ufe0f']}
 

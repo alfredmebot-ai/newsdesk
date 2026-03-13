@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-    <title>ALFRED NEWSDESK RESPONSIVE</title>
+    <title>ALFRED NEWSDESK</title>
     <style>
         body { background: #000; color: #fff; font-family: sans-serif; margin: 0; padding: 2vh; overflow: hidden; height: 100vh; display: flex; flex-direction: column; box-sizing: border-box; }
         .top-bar { display: flex; justify-content: space-between; height: 15vh; border-bottom: 2px solid #333; margin-bottom: 2vh; align-items: center; }
-        #clock { font-size: 8vh; font-weight: bold; line-height: 1; }
-        #date { font-size: 2vh; color: #888; text-transform: uppercase; }
-        .weather-center { display: flex; gap: 2vw; background: #111; padding: 1.5vh 2vw; border-radius: 5vh; border: 1px solid #222; align-items: center; }
-        .w-icon { font-size: 4vh; }
-        .w-temp { font-size: 4vh; font-weight: bold; }
-        .rate-box { background: #111; padding: 1vh 1.5vw; border-radius: 1vh; border: 1px solid #222; min-width: 10vw; }
-        .r-val { font-size: 3vh; font-weight: bold; }
+        .clock-section { display: flex; flex-direction: column; }
+        #clock { font-size: 8vh; font-weight: bold; line-height: 1; margin: 0; }
+        #date { font-size: 2vh; color: #888; text-transform: uppercase; margin: 0; }
+        .weather-center { display: flex; gap: 2vw; background: #111; padding: 1.5vh 2vw; border-radius: 5vh; border: 1px solid #222; align-items: center; justify-content: center; min-width: 25vw; }
+        .w-item { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .w-icon { font-size: 4vh; line-height: 1; }
+        .w-temp { font-size: 4vh; font-weight: bold; color: #fff; }
+        .w-divider { width: 1px; height: 6vh; background: #333; }
+        .rate-boxes { display: flex; gap: 1vw; }
+        .rate-box { background: #111; padding: 1vh 1.5vw; border-radius: 1vh; border: 1px solid #222; min-width: 10vw; text-align: center; }
+        .r-val { font-size: 3.2vh; font-weight: bold; color: #fff; display: block; }
+        .r-label { font-size: 1.5vh; color: #888; font-weight: bold; margin-top: 0.5vh; display: block; text-transform: uppercase; }
         .news-wrapper { display: flex; flex: 1; gap: 2vw; min-height: 0; }
         .col { flex: 1; background: #111; border-radius: 1.5vh; display: flex; flex-direction: column; overflow: hidden; border: 1px solid #222; }
         .tag { background: #c00; padding: 1vh; font-weight: bold; text-transform: uppercase; font-size: 1.8vh; }
@@ -26,10 +31,11 @@
         .bar { height: 6vh; display: flex; align-items: center; overflow: hidden; white-space: nowrap; font-size: 2.5vh; background: #222; border-top: 2px solid #444; }
         .scroll { display: inline-block; animation: scroll 60s linear infinite; color: #ccc; }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
-        .ticker-link { padding-right: 5vw; display: inline-block; }
+        .ticker-link { padding-right: 5vw; display: inline-block; font-weight: bold; }
         .ticker-time { color: #fff; background: #c00; padding: 0.2vh 0.6vw; border-radius: 0.5vh; margin-right: 1vw; font-size: 1.8vh; }
         .fade { animation: fadeIn 1s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .r-up { color: #0f0; } .r-down { color: #f00; }
     </style>
 </head>
 <body>
@@ -37,42 +43,67 @@
         <div class="clock-section"><div id="clock">00:00:00</div><div id="date">LADDAR...</div></div>
         <div class="weather-center">
             <div class="w-item"><div id="wi-now" class="w-icon">🌤️</div><div id="wt-now" class="w-temp">--°</div></div>
-            <div id="wi-6" class="w-icon">☀️</div><div id="wt-6" class="w-temp">--°</div>
-            <div id="wi-12" class="w-icon">🌤️</div><div id="wt-12" class="w-temp">--°</div>
+            <div class="w-divider"></div>
+            <div class="w-item"><div id="wi-6" class="w-icon">☀️</div><div id="wt-6" class="w-temp">--°</div></div>
+            <div class="w-divider"></div>
+            <div class="w-item"><div id="wi-12" class="w-icon">🌤️</div><div id="wt-12" class="w-temp">--°</div></div>
         </div>
         <div class="rate-boxes">
-            <div class="rate-box"><div id="v-usd" class="r-val">--.--</div><div id="c-usd">--</div></div>
-            <div class="rate-box"><div id="v-eur" class="r-val">--.--</div><div id="c-eur">--</div></div>
+            <div class="rate-box"><span id="v-usd" class="r-val">--.--</span><span id="c-usd" class="r-label">USD/SEK</span></div>
+            <div class="rate-box"><span id="v-eur" class="r-val">--.--</span><span id="c-eur" class="r-label">EUR/SEK</span></div>
         </div>
     </div>
     <div class="news-wrapper"><div id="news-se" class="col"></div><div id="news-int" class="col"></div></div>
-    <div class="bottom-bars"><div class="bar"><div id="ticker" class="scroll">LADDAR...</div></div></div>
+    <div class="bottom-bars"><div class="bar"><div id="ticker" class="scroll">LADDAR HETASTE NYTT...</div></div></div>
     <script>
-        var newsData = {}; var newsIdx = 0;
+        var newsData = { swedish: [], international: [], breaking: [] }; var newsIdx = 0;
         function updateData() {
-            fetch('data/newsdesk.json?v=' + Date.now()).then(r => r.json()).then(data => {
+            fetch('data/newsdesk.json?v=' + Date.now()).then(res => res.json()).then(data => {
                 newsData = data;
-                document.getElementById('wt-now').innerText = data.weather.now + '°';
-                document.getElementById('wt-6').innerText = data.weather.plus6 + '°';
-                document.getElementById('wt-12').innerText = data.weather.plus12 + '°';
-                document.getElementById('v-usd').innerText = data.rates.usd.val.toFixed(2);
-                document.getElementById('v-eur').innerText = data.rates.eur.val.toFixed(2);
-                var html = data.breaking.map(n => `<span class="ticker-link"><span class="ticker-time">${n.time}</span>${n.title}</span>`).join('');
-                document.getElementById('ticker').innerHTML = html + html;
+                if (data.weather) {
+                    document.getElementById('wt-now').innerText = data.weather.now + '°';
+                    document.getElementById('wt-6').innerText = data.weather.plus6 + '°';
+                    document.getElementById('wt-12').innerText = data.weather.plus12 + '°';
+                    if (data.weather.icons) {
+                        document.getElementById('wi-now').innerText = data.weather.icons[0];
+                        document.getElementById('wi-6').innerText = data.weather.icons[1];
+                        document.getElementById('wi-12').innerText = data.weather.icons[2];
+                    }
+                }
+                if (data.rates) {
+                    if (data.rates.usd) {
+                        var uo = data.rates.usd.change_ore || 0;
+                        document.getElementById('v-usd').innerHTML = data.rates.usd.val.toFixed(2) + ' <span class="'+(uo>=0?'r-up':'r-down')+'" style="font-size: 1.8vh; vertical-align: middle;">'+(uo>=0?'▲':'▼')+' '+(uo>=0?'+':'')+uo+'</span>';
+                    }
+                    if (data.rates.eur) {
+                        var eo = data.rates.eur.change_ore || 0;
+                        document.getElementById('v-eur').innerHTML = data.rates.eur.val.toFixed(2) + ' <span class="'+(eo>=0?'r-up':'r-down')+'" style="font-size: 1.8vh; vertical-align: middle;">'+(eo>=0?'▲':'▼')+' '+(eo>=0?'+':'')+eo+'</span>';
+                    }
+                }
+                if (data.breaking && data.breaking.length > 0) {
+                    var html = data.breaking.map(n => '<span class="ticker-link"><span class="ticker-time">'+n.time+'</span>'+n.title+'</span>').join('');
+                    document.getElementById('ticker').innerHTML = html + html;
+                }
                 renderNews();
-            });
+            }).catch(e => console.log("JSON Error:", e));
         }
         function renderNews() {
-            var s = newsData.swedish[newsIdx % newsData.swedish.length];
-            var i = newsData.international[newsIdx % newsData.international.length];
-            document.getElementById('news-se').innerHTML = `<div class="fade"><div class="tag">SE | ${s.source}</div><img src="${s.image}"><div class="content"><h2>${s.title}</h2><p>${s.desc}</p></div></div>`;
-            document.getElementById('news-int').innerHTML = `<div class="fade"><div class="tag int">INT | ${i.source}</div><img src="${i.image}"><div class="content"><h2>${i.title}</h2><p>${i.desc}</p></div></div>`;
+            if (newsData.swedish && newsData.swedish.length > 0) {
+                var s = newsData.swedish[newsIdx % newsData.swedish.length];
+                document.getElementById('news-se').innerHTML = '<div class="fade"><div class="tag">SE | ' + s.source + '</div><img src="' + s.image + '"><div class="content"><h2>' + s.title + '</h2><p>' + s.desc + '</p></div></div>';
+            }
+            if (newsData.international && newsData.international.length > 0) {
+                var i = newsData.international[newsIdx % newsData.international.length];
+                document.getElementById('news-int').innerHTML = '<div class="fade"><div class="tag int">INT | ' + i.source + '</div><img src="' + i.image + '"><div class="content"><h2>' + i.title + '</h2><p>' + i.desc + '</p></div></div>';
+            }
         }
         setInterval(() => { newsIdx++; renderNews(); }, 12000);
         setInterval(updateData, 300000);
         function clock() {
             var n = new Date(); document.getElementById('clock').innerText = n.toTimeString().split(' ')[0];
-            document.getElementById('date').innerText = n.toLocaleDateString('sv-SE', {weekday:'long', day:'numeric', month:'long'}).toUpperCase();
+            var d = ['SÖNDAG', 'MÅNDAG', 'TISDAG', 'ONSDAG', 'TORSDAG', 'FREDAG', 'LÖRDAG'];
+            var m = ['JANUARI', 'FEBRUARI', 'MARS', 'APRIL', 'MAJ', 'JUNI', 'JULI', 'AUGUSTI', 'SEPTEMBER', 'OKTOBER', 'NOVEMBER', 'DECEMBER'];
+            document.getElementById('date').innerText = d[n.getDay()] + ' ' + n.getDate() + ' ' + m[n.getMonth()];
         }
         setInterval(clock, 1000); clock(); updateData();
     </script>

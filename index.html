@@ -28,8 +28,9 @@
         h2 { font-size: 3vh; margin: 0 0 1vh 0; color: #ff0; line-height: 1.1; }
         p { font-size: 2vh; color: #fff; line-height: 1.4; margin: 0; }
         .bottom-bars { margin: 2vh -2vw -2vh -2vw; }
-        .bar { height: 6vh; display: flex; align-items: center; overflow: hidden; white-space: nowrap; font-size: 2.5vh; background: #222; border-top: 2px solid #444; }
-        .scroll { display: inline-block; animation: scroll 60s linear infinite; color: #ccc; }
+        .bar { height: 6vh; display: flex; align-items: center; overflow: hidden; white-space: nowrap; font-size: 2.5vh; background: #222; border-top: 2px solid #444; position: relative; }
+        .scroll { display: inline-block; animation: scroll 60s linear infinite; -webkit-animation: scroll 60s linear infinite; color: #ccc; white-space: nowrap; }
+        @-webkit-keyframes scroll { 0% { -webkit-transform: translateX(0); } 100% { -webkit-transform: translateX(-50%); } }
         @keyframes scroll { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
         .ticker-link { padding-right: 5vw; display: inline-block; font-weight: bold; }
         .ticker-time { color: #fff; background: #c00; padding: 0.2vh 0.6vw; border-radius: 0.5vh; margin-right: 1vw; font-size: 1.8vh; }
